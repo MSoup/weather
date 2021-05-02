@@ -1,38 +1,62 @@
-let textfield = document.querySelector("#city");
-let cityName = document.querySelector(".cityName");
-let cityForm = document.getElementById("getCity");
-let conditions = document.querySelector(".conditions");
+import getCityWeather from "./getCityWeather.js";
+import { kelvinToFahrenheit, kelvinToCelsius } from "./helpers.js";
 
+// Form functions
 function handleSubmit(e) {
   e.preventDefault();
-  //   For debugging
-  console.log(e);
-  const city = textfield.value;
 
-  getCityInfo(city);
-  cityName.textContent = "Loading city...";
+  const textfield = document.querySelector("#city");
+  let cityName = document.querySelector(".cityName");
+
+  const city = textfield.value;
+  if (!city) {
+    cityName.textContent = "Cannot search empty field";
+    return;
+  }
+  populateData(city);
+  cityName.textContent = "";
 }
 
+let cityForm = document.getElementById("getCity");
 cityForm.addEventListener("submit", handleSubmit);
 
-async function getCityInfo(cityNameInputted) {
-  const url =
-    "https://api.openweathermap.org/data/2.5/weather?q=Sendai&appid=b22a0f977cd497e178d94a1e1d72c022";
+// Generate Data based on submission
+async function populateData(formValue) {
+  const {
+    temp,
+    feels_like,
+    city,
+    country,
+    humidity,
+    condition,
+  } = await getCityWeather(formValue);
+  // Convert temps to common values
+  const readableTempC = kelvinToCelsius(temp);
+  console.log(readableTempC);
+  const readableTempF = kelvinToFahrenheit(temp);
 
-  const response = await fetch(url);
-  const data = await response.json();
-  const { temp, feels_like } = data.main;
+  const cardContainer = document.querySelector(".infoCard");
+  const infoCardCity = document.querySelector(".infoCardCity");
+  const infoCardTemp = document.querySelector(".infoCardTemp");
+  const infoCardWeather = document.querySelector(".infoCardWeather");
+  const infoCardHumidity = document.querySelector(".infoCardHumidity");
 
-  const temperature = { temp: temp, feels_like: feels_like };
-  const city = data.name;
-  const country = data.sys.country;
-  const humidity = data.main.humidity;
+  const showC = function () {
+    return true;
+  };
+  infoCardCity.textContent = city;
+  infoCardTemp.textContent = showC ? readableTempC : readableTempF;
+  // `${temp} (feels like ${feels_like})`;
+  infoCardWeather.textContent =
+    condition.charAt(0).toUpperCase() + condition.slice(1);
+  infoCardHumidity.textContent = `Humidity: ${humidity}`;
+}
 
-  cityName.textContent = `${data.name}, ${data.sys.country}`;
-  conditions.textContent = `${data.weather[0].description}`;
-  console.log(data);
-  console.log(temperature);
-  console.log(city);
-  console.log(country);
-  return { temperature, city, country };
+function getWeatherIcon(weather) {
+  const icon = document.querySelector(".fas");
+  // Clear class first
+  icon.className = "fas";
+  console.log(icon);
+  // Add logic to change icon based off of FA icons
+  icon.classList.add("fa-bolt");
 }
